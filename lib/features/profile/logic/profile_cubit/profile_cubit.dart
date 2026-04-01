@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/storage/secure_storage_service.dart';
 import '../../data/models/change_email_request.dart';
 import '../../data/models/change_password_request.dart';
 import '../../data/models/confirm_change_email_request.dart';
@@ -9,8 +10,9 @@ import 'profile_state.dart';
 
 class ProfileCubit extends Cubit<ProfileState> {
   final ProfileRepository profileRepository;
+  final SecureStorageService storage;
 
-  ProfileCubit(this.profileRepository) : super(ProfileInitial());
+  ProfileCubit(this.profileRepository, this.storage) : super(ProfileInitial());
 
   // ── getter بيجيب الـ profile من أي state ──
   ProfileModel? get currentProfile {
@@ -110,9 +112,12 @@ class ProfileCubit extends Cubit<ProfileState> {
       (_) async {
         // ✅ Fix: بعد تغيير الإيميل نعمل refresh للـ profile عشان الـ UI يتحدث
         final refreshResult = await profileRepository.getProfile();
-        refreshResult.fold(
-          (failure) => emit(ConfirmChangeEmailSuccess()), // نجاح حتى لو الـ refresh فشل
-          (updatedProfile) {
+        await refreshResult.fold(
+          (failure) async => emit(ConfirmChangeEmailSuccess()), // نجاح حتى لو الـ refresh فشل
+          (updatedProfile) async {
+            // ✅ حفظ الإيميل الجديد في الـ Storage عشان يفضل موجود بعد الـ Logout أو الـ Restart
+            await storage.saveEmail(updatedProfile.email);
+
             // نبعت الـ state دي الأول عشان الـ listener يعمل حاجته
             emit(ConfirmChangeEmailSuccess());
             // بعدين نحدث الـ profile في الـ state

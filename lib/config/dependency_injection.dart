@@ -59,11 +59,11 @@ Future<void> setupDependencyInjection() async {
     ),
   );
 
-  // getIt.registerLazySingleton<ProfileCubit>(
-  //       () => ProfileCubit(getIt<ProfileRepository>()),
-  // );
-  getIt.registerFactory<ProfileCubit>(
-      () => ProfileCubit(getIt<ProfileRepository>()),
+  getIt.registerLazySingleton<ProfileCubit>(
+    () => ProfileCubit(
+      getIt<ProfileRepository>(),
+      getIt<SecureStorageService>(),
+    ),
   );
 
   //  Workspaces
