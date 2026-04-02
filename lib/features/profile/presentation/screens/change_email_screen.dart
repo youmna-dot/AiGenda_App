@@ -18,8 +18,6 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
   final _newEmailCtrl = TextEditingController();
   final _codeCtrl = TextEditingController();
 
-  // Step 1: إدخال الإيميل الجديد
-  // Step 2: إدخال الكود
   bool _isStep2 = false;
   bool _isSending = false;
   bool _isConfirming = false;
@@ -28,6 +26,9 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
   String? _errorMsg;
   String? _successMsg;
 
+  // نحفظ الإيميل الجديد هنا عشان نعرضه في شاشة الـ success
+  String _confirmedEmail = '';
+
   @override
   void dispose() {
     _newEmailCtrl.dispose();
@@ -35,9 +36,14 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
     super.dispose();
   }
 
-  // ── Step 1: طلب إرسال الكود ──
+  // ── Step 1: إرسال الكود للإيميل الجديد ──
   Future<void> _sendCode() async {
     final email = _newEmailCtrl.text.trim().toLowerCase();
+
+    if (email.isEmpty) {
+      setState(() => _errorMsg = 'Enter your new email address.');
+      return;
+    }
     if (!email.contains('@') || !email.contains('.')) {
       setState(() => _errorMsg = 'Enter a valid email address.');
       return;
@@ -45,9 +51,9 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
 
     final currentEmail =
         context.read<ProfileCubit>().currentProfile?.email ?? '';
-    if (email == currentEmail) {
-      setState(
-          () => _errorMsg = 'New email must be different from current email.');
+    if (email == currentEmail.toLowerCase()) {
+      setState(() =>
+          _errorMsg = 'New email must be different from your current email.');
       return;
     }
 
@@ -62,21 +68,25 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
     if (mounted) setState(() => _isSending = false);
   }
 
-  // ── Step 2: تأكيد الكود وتغيير الإيميل ──
+  // ── Step 2: تأكيد الكود ──
   Future<void> _confirmCode() async {
     final code = _codeCtrl.text.replaceAll(RegExp(r'\s+'), '').trim();
+
     if (code.isEmpty) {
       setState(() => _errorMsg = 'Enter the verification code.');
       return;
     }
 
-    // نتأكد إن الـ id موجود
+    // نجيب الـ profile id
     var profile = context.read<ProfileCubit>().currentProfile;
+
     if (profile == null || profile.id.isEmpty) {
-      final result = await context.read<ProfileCubit>().profileRepository.getProfile();
+      // نحاول نحمل البروفايل
+      final result =
+          await context.read<ProfileCubit>().profileRepository.getProfile();
       result.fold(
         (failure) {
-          setState(() => _errorMsg = 'Could not load profile. Try again.');
+          setState(() => _errorMsg = 'Could not load profile. Please try again.');
           return;
         },
         (p) => profile = p,
@@ -84,9 +94,18 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
     }
 
     if (profile == null || profile!.id.isEmpty) {
-      setState(() => _errorMsg = 'Session expired. Please go back and try again.');
+      setState(() =>
+          _errorMsg = 'Session expired. Please go back and try again.');
       return;
     }
+
+    final newEmail = _newEmailCtrl.text.trim().toLowerCase();
+
+    // ── Debug print (شيليها بعد ما تتأكدي إنه شغال) ──
+    debugPrint('=== CONFIRM EMAIL CHANGE ===');
+    debugPrint('  id       : "${profile!.id}"');
+    debugPrint('  newEmail : "$newEmail"');
+    debugPrint('  code     : "$code"');
 
     setState(() {
       _isConfirming = true;
@@ -94,14 +113,9 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
       _successMsg = null;
     });
 
-    debugPrint('=== CONFIRM EMAIL CHANGE ===');
-    debugPrint('id: "${profile!.id}"');
-    debugPrint('newEmail: "${_newEmailCtrl.text.trim().toLowerCase()}"');
-    debugPrint('code: "$code"');
-
     await context.read<ProfileCubit>().confirmChangeEmail(
           id: profile!.id,
-          newEmail: _newEmailCtrl.text.trim().toLowerCase(),
+          newEmail: newEmail,
           code: code,
         );
 
@@ -114,12 +128,13 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
       backgroundColor: const Color(0xFFF5F3FF),
       body: BlocConsumer<ProfileCubit, ProfileState>(
         listener: (context, state) {
-          // ── Step 1 نجح → انتقل لـ Step 2 ──
+          // ── Step 1 نجح ──
           if (state is ChangeEmailSuccess) {
             setState(() {
               _isStep2 = true;
-              _successMsg = 'Code sent! Check your new email inbox.';
               _errorMsg = null;
+              _successMsg =
+                  'Code sent! Check ${_newEmailCtrl.text.trim()} inbox.';
             });
           }
           if (state is ChangeEmailFailure) {
@@ -131,6 +146,7 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
 
           // ── Step 2 نجح ──
           if (state is ConfirmChangeEmailSuccess) {
+            _confirmedEmail = _newEmailCtrl.text.trim().toLowerCase();
             setState(() {
               _isSuccess = true;
               _errorMsg = null;
@@ -144,6 +160,11 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
           }
         },
         builder: (context, state) {
+          final isLoadingStep1 =
+              _isSending || state is ChangeEmailLoading;
+          final isLoadingStep2 =
+              _isConfirming || state is ConfirmChangeEmailLoading;
+
           return SafeArea(
             child: _isSuccess
                 ? _buildSuccessView(context)
@@ -177,7 +198,10 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
                             height: 80,
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
-                                colors: [Color(0xFF8B6FD4), Color(0xFF5B3A9E)],
+                                colors: [
+                                  Color(0xFF8B6FD4),
+                                  Color(0xFF5B3A9E)
+                                ],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               ),
@@ -197,7 +221,7 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
                         ),
                         const SizedBox(height: 24),
 
-                        // ── Current email label ──
+                        // ── Current email ──
                         Center(
                           child: Column(
                             children: [
@@ -234,14 +258,14 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
                               Text(
                                 _isStep2
                                     ? 'We sent a code to ${_newEmailCtrl.text.trim()}'
-                                    : 'Enter the new email you want to use.',
+                                    : 'Enter the new email address you want to use.',
                                 style: GoogleFonts.poppins(
                                     fontSize: 12,
                                     color: const Color(0xFF8A84A3)),
                               ),
                               const SizedBox(height: 16),
 
-                              // ── Error / Success Banner ──
+                              // ── Banners ──
                               if (_errorMsg != null) ...[
                                 InfoBanner(
                                     message: _errorMsg!, isError: true),
@@ -253,7 +277,7 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
                                 const SizedBox(height: 14),
                               ],
 
-                              // ── Step 1: إيميل جديد ──
+                              // ── Step 1 ──
                               if (!_isStep2) ...[
                                 _buildField(
                                   label: 'New Email',
@@ -261,17 +285,17 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
                                   hint: 'new@example.com',
                                   icon: Icons.email_outlined,
                                   keyboardType: TextInputType.emailAddress,
+                                  enabled: !isLoadingStep1,
                                 ),
                                 const SizedBox(height: 20),
                                 ProfileGradientButton(
                                   label: 'Send Verification Code',
-                                  isLoading: _isSending ||
-                                      state is ChangeEmailLoading,
+                                  isLoading: isLoadingStep1,
                                   onTap: _sendCode,
                                 ),
                               ],
 
-                              // ── Step 2: كود التأكيد ──
+                              // ── Step 2 ──
                               if (_isStep2) ...[
                                 _buildField(
                                   label: 'Verification Code',
@@ -279,34 +303,39 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
                                   hint: 'Paste code from your new email',
                                   icon: Icons.lock_open_rounded,
                                   keyboardType: TextInputType.text,
+                                  enabled: !isLoadingStep2,
                                 ),
                                 const SizedBox(height: 6),
-                                Text(
-                                  '💡 Copy the code from your new email and paste it here',
-                                  style: GoogleFonts.poppins(
-                                      fontSize: 11,
-                                      color: const Color(0xFF8A84A3)),
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 4),
+                                  child: Text(
+                                    '💡 Check the inbox of your NEW email: ${_newEmailCtrl.text.trim()}',
+                                    style: GoogleFonts.poppins(
+                                        fontSize: 11,
+                                        color: const Color(0xFF8A84A3)),
+                                  ),
                                 ),
                                 const SizedBox(height: 20),
                                 ProfileGradientButton(
                                   label: 'Confirm Email Change',
-                                  isLoading: _isConfirming ||
-                                      state is ConfirmChangeEmailLoading,
+                                  isLoading: isLoadingStep2,
                                   onTap: _confirmCode,
                                 ),
                                 const SizedBox(height: 12),
 
-                                // زرار إعادة الإرسال
+                                // Resend
                                 Center(
                                   child: TextButton(
-                                    onPressed: (_isSending ||
-                                            state is ChangeEmailLoading)
+                                    onPressed: isLoadingStep1
                                         ? null
                                         : () async {
                                             setState(() {
-                                              _successMsg = null;
                                               _errorMsg = null;
+                                              _successMsg = null;
+                                              _codeCtrl.clear();
                                             });
+                                            setState(
+                                                () => _isSending = true);
                                             await context
                                                 .read<ProfileCubit>()
                                                 .changeEmail(
@@ -314,9 +343,13 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
                                                         .text
                                                         .trim()
                                                         .toLowerCase());
+                                            if (mounted) {
+                                              setState(() =>
+                                                  _isSending = false);
+                                            }
                                           },
                                     child: Text(
-                                      "Didn't receive it? Resend",
+                                      "Didn't receive it? Resend code",
                                       style: GoogleFonts.poppins(
                                           fontSize: 13,
                                           color: const Color(0xFF7C5CBF),
@@ -325,7 +358,7 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
                                   ),
                                 ),
 
-                                // زرار "استخدم إيميل تاني"
+                                // Use different email
                                 Center(
                                   child: TextButton(
                                     onPressed: () => setState(() {
@@ -339,7 +372,8 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
                                       style: GoogleFonts.poppins(
                                           fontSize: 12,
                                           color: const Color(0xFF8A84A3),
-                                          decoration: TextDecoration.underline,
+                                          decoration:
+                                              TextDecoration.underline,
                                           decorationColor:
                                               const Color(0xFF8A84A3)),
                                     ),
@@ -391,7 +425,7 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
                     color: const Color(0xFF1E0F5C))),
             const SizedBox(height: 10),
             Text(
-              'Your email has been updated to\n${_newEmailCtrl.text.trim()}',
+              'Your email has been updated to:\n$_confirmedEmail',
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
                   fontSize: 13,
@@ -402,6 +436,8 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
             ProfileGradientButton(
               label: 'Back to Profile',
               isLoading: false,
+              // ✅ لما يرجع للـ profile، الـ profile_screen هيعمل refreshProfile()
+              // عشان الإيميل يتحدث في الشاشة
               onTap: () => context.pop(),
             ),
           ],
@@ -416,6 +452,7 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
     required String hint,
     required IconData icon,
     TextInputType? keyboardType,
+    bool enabled = true,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -429,9 +466,10 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
         TextField(
           controller: controller,
           keyboardType: keyboardType,
-          style:
-              GoogleFonts.poppins(fontSize: 14, color: const Color(0xFF1E0F5C)),
-          decoration: inputDecoration(hint: hint, icon: icon),
+          enabled: enabled,
+          style: GoogleFonts.poppins(
+              fontSize: 14, color: const Color(0xFF1E0F5C)),
+          decoration: inputDecoration(hint: hint, icon: icon, enabled: enabled),
         ),
       ],
     );

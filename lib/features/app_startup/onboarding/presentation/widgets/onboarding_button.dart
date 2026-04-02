@@ -1,6 +1,10 @@
+// onboarding/presentation/widgets/onboarding_button.dart
+// مش محتاجينه كـ separate widget بعد كده
+// بس لو محتاجاه لملفات تانية:
+
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/constants/app_colors.dart';
-import '../../../../../core/constants/app_text_styles.dart';
 
 class OnboardingButton extends StatelessWidget {
   final String text;
@@ -15,7 +19,7 @@ class OnboardingButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: double.infinity, // خليناه ياخد العرض كامل
+      width: double.infinity,
       height: 56,
       child: ElevatedButton(
         onPressed: onPressed,
@@ -28,7 +32,11 @@ class OnboardingButton extends StatelessWidget {
         ),
         child: Text(
           text,
-          style: AppTextStyles.buttonText, // استخدمنا الـ Button Style بتاعك
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
         ),
       ),
     );

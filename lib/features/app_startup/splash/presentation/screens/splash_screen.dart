@@ -1,11 +1,13 @@
+// splash/presentation/screens/splash_screen.dart
+
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../../config/routes/route_names.dart';
+import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/constants/app_strings.dart';
 import '../../../../../core/constants/app_text_styles.dart';
-import '../../../../../core/constants/app_colors.dart';
-import '../../../../../config/routes/route_names.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -14,7 +16,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with TickerProviderStateMixin {
   late AnimationController _bgController;
   late Animation<double> _bgPulse;
   late AnimationController _orbitController;
@@ -39,31 +42,60 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   void initState() {
     super.initState();
 
-    _bgController = AnimationController(vsync: this, duration: const Duration(seconds: 4))..repeat(reverse: true);
+    _bgController = AnimationController(
+        vsync: this, duration: const Duration(seconds: 4))
+      ..repeat(reverse: true);
     _bgPulse = CurvedAnimation(parent: _bgController, curve: Curves.easeInOut);
 
-    _orbitController = AnimationController(vsync: this, duration: const Duration(seconds: 8))..repeat();
+    _orbitController = AnimationController(
+        vsync: this, duration: const Duration(seconds: 8))
+      ..repeat();
 
-    _ringController = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200));
-    _ringScale = Tween<double>(begin: 0.3, end: 1.0).animate(CurvedAnimation(parent: _ringController, curve: Curves.elasticOut));
-    _ringOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _ringController, curve: const Interval(0.0, 0.4)));
+    _ringController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 1200));
+    _ringScale = Tween<double>(begin: 0.3, end: 1.0).animate(
+        CurvedAnimation(parent: _ringController, curve: Curves.elasticOut));
+    _ringOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(
+            parent: _ringController, curve: const Interval(0.0, 0.4)));
 
-    _logoController = AnimationController(vsync: this, duration: const Duration(milliseconds: 1000));
-    _logoScale = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _logoController, curve: Curves.elasticOut));
-    _logoOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _logoController, curve: const Interval(0.0, 0.4)));
+    _logoController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 1000));
+    _logoScale = Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(parent: _logoController, curve: Curves.elasticOut));
+    _logoOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(
+            parent: _logoController, curve: const Interval(0.0, 0.4)));
 
-    _nameController = AnimationController(vsync: this, duration: const Duration(milliseconds: 900));
-    _nameOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _nameController, curve: const Interval(0, 0.5)));
-    _nameSlide = Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero).animate(CurvedAnimation(parent: _nameController, curve: Curves.easeOutCubic));
-    _shimmerProgress = Tween<double>(begin: -1.0, end: 2.0).animate(CurvedAnimation(parent: _nameController, curve: Curves.easeInOut));
+    _nameController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 900));
+    _nameOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(
+            parent: _nameController, curve: const Interval(0, 0.5)));
+    _nameSlide =
+        Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero).animate(
+            CurvedAnimation(
+                parent: _nameController, curve: Curves.easeOutCubic));
+    _shimmerProgress = Tween<double>(begin: -1.0, end: 2.0).animate(
+        CurvedAnimation(parent: _nameController, curve: Curves.easeInOut));
 
-    _taglineController = AnimationController(vsync: this, duration: const Duration(milliseconds: 700));
-    _taglineOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _taglineController, curve: Curves.easeOut));
-    _taglineSlide = Tween<Offset>(begin: const Offset(0, 0.4), end: Offset.zero).animate(CurvedAnimation(parent: _taglineController, curve: Curves.easeOutCubic));
+    _taglineController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 700));
+    _taglineOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(parent: _taglineController, curve: Curves.easeOut));
+    _taglineSlide =
+        Tween<Offset>(begin: const Offset(0, 0.4), end: Offset.zero).animate(
+            CurvedAnimation(
+                parent: _taglineController, curve: Curves.easeOutCubic));
 
-    _buttonsController = AnimationController(vsync: this, duration: const Duration(milliseconds: 700));
-    _buttonsOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _buttonsController, curve: Curves.easeOut));
-    _buttonsSlide = Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero).animate(CurvedAnimation(parent: _buttonsController, curve: Curves.easeOutCubic));
+    _buttonsController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 700));
+    _buttonsOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(parent: _buttonsController, curve: Curves.easeOut));
+    _buttonsSlide =
+        Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero).animate(
+            CurvedAnimation(
+                parent: _buttonsController, curve: Curves.easeOutCubic));
 
     _runSequence();
   }
@@ -108,10 +140,20 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
+                // Fix: ألوان أدفأ وأكثر purple زي الصورة القديمة
                 colors: [
-                  Color.lerp(AppColors.background, AppColors.cardBackground, _bgPulse.value)!,
-                  Color.lerp(AppColors.cardBorder, AppColors.background, _bgPulse.value)!,
-                  Color.lerp(AppColors.cardBackground, AppColors.background, 1 - _bgPulse.value)!,
+                  Color.lerp(
+                    const Color(0xFFF5F0FF),
+                    const Color(0xFFF8F5FF),
+                    _bgPulse.value)!,
+                  Color.lerp(
+                    const Color(0xFFEEE8F8),
+                    const Color(0xFFF5F0FF),
+                    _bgPulse.value)!,
+                  Color.lerp(
+                    const Color(0xFFF8F5FF),
+                    const Color(0xFFF0EBFF),
+                    1 - _bgPulse.value)!,
                 ],
                 stops: const [0.0, 0.5, 1.0],
               ),
@@ -132,11 +174,16 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   Widget _buildOrbitSystems(Size size) {
     return Stack(
       children: [
-        _buildOrbitDot(size: size, orbitRadius: 110, dotSize: 8, color: AppColors.primary, opacity: 0.5, speed: 1.0, angleOffset: 0.0),
-        _buildOrbitDot(size: size, orbitRadius: 130, dotSize: 5, color: AppColors.gradientBlue, opacity: 0.45, speed: 0.7, angleOffset: 2.1),
-        _buildOrbitDot(size: size, orbitRadius: 95, dotSize: 6, color: AppColors.gradientLight, opacity: 0.4, speed: 1.3, angleOffset: 4.2),
-        _buildOrbitDot(size: size, orbitRadius: 150, dotSize: 4, color: AppColors.primary, opacity: 0.28, speed: 0.5, angleOffset: 1.0),
-        _buildOrbitDot(size: size, orbitRadius: 120, dotSize: 5, color: AppColors.gradientBlue, opacity: 0.32, speed: 0.9, angleOffset: 3.5),
+        _buildOrbitDot(size: size, orbitRadius: 110, dotSize: 8,
+            color: AppColors.primary, opacity: 0.5, speed: 1.0, angleOffset: 0.0),
+        _buildOrbitDot(size: size, orbitRadius: 130, dotSize: 5,
+            color: AppColors.gradientLight, opacity: 0.45, speed: 0.7, angleOffset: 2.1),
+        _buildOrbitDot(size: size, orbitRadius: 95, dotSize: 6,
+            color: AppColors.gradientLight, opacity: 0.4, speed: 1.3, angleOffset: 4.2),
+        _buildOrbitDot(size: size, orbitRadius: 150, dotSize: 4,
+            color: AppColors.primary, opacity: 0.28, speed: 0.5, angleOffset: 1.0),
+        _buildOrbitDot(size: size, orbitRadius: 120, dotSize: 5,
+            color: AppColors.primary, opacity: 0.32, speed: 0.9, angleOffset: 3.5),
       ],
     );
   }
@@ -187,13 +234,16 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           top: -100,
           left: -100,
           child: Opacity(
-            opacity: 0.16 + 0.07 * _bgPulse.value,
+            opacity: 0.18 + 0.08 * _bgPulse.value,
             child: Container(
               width: 360,
               height: 360,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: RadialGradient(colors: [AppColors.primary, AppColors.white]), // عدلنا التدرج
+                gradient: RadialGradient(colors: [
+                  AppColors.primary,
+                  Colors.transparent,
+                ]),
               ),
             ),
           ),
@@ -202,13 +252,16 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           bottom: 60,
           right: -100,
           child: Opacity(
-            opacity: 0.12 + 0.06 * (1 - _bgPulse.value),
+            opacity: 0.14 + 0.06 * (1 - _bgPulse.value),
             child: Container(
               width: 300,
               height: 300,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: RadialGradient(colors: [AppColors.gradientBlue, AppColors.white]),
+                gradient: RadialGradient(colors: [
+                  AppColors.gradientLight,
+                  Colors.transparent,
+                ]),
               ),
             ),
           ),
@@ -240,7 +293,8 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
   Widget _buildLogoSection() {
     return AnimatedBuilder(
-      animation: Listenable.merge([_logoController, _ringController, _bgController]),
+      animation:
+          Listenable.merge([_logoController, _ringController, _bgController]),
       builder: (context, _) {
         final floatOffset = math.sin(_bgController.value * math.pi) * 7;
         return Transform.translate(
@@ -260,7 +314,10 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                       height: 200,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.primary.withOpacity(0.25), width: 1),
+                        border: Border.all(
+                          color: AppColors.primary.withOpacity(0.25),
+                          width: 1,
+                        ),
                       ),
                     ),
                   ),
@@ -274,7 +331,10 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                       height: 165,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.gradientLight.withOpacity(0.3), width: 1.5),
+                        border: Border.all(
+                          color: AppColors.gradientLight.withOpacity(0.3),
+                          width: 1.5,
+                        ),
                       ),
                     ),
                   ),
@@ -300,7 +360,12 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                   opacity: _logoOpacity.value,
                   child: Transform.scale(
                     scale: _logoScale.value,
-                    child: Image.asset(AppAssets.logo, width: 125, height: 125, fit: BoxFit.contain),
+                    child: Image.asset(
+                      AppAssets.logo,
+                      width: 125,
+                      height: 125,
+                      fit: BoxFit.contain,
+                    ),
                   ),
                 ),
               ],
@@ -325,7 +390,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 return LinearGradient(
                   begin: Alignment(s - 0.5, 0),
                   end: Alignment(s + 0.5, 0),
-                  colors: const [
+                  colors: [
                     AppColors.textDark,
                     AppColors.primary,
                     AppColors.gradientLight,
@@ -382,38 +447,33 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     return AnimatedBuilder(
       animation: _bgController,
       builder: (context, _) {
-        final pulse0 = math.sin(_bgController.value * math.pi * 2 + 0.0) * 0.5 + 0.5;
-        final pulse1 = math.sin(_bgController.value * math.pi * 2 + 1.05) * 0.5 + 0.5;
-        final pulse2 = math.sin(_bgController.value * math.pi * 2 + 2.1) * 0.5 + 0.5;
+        final pulse0 =
+            math.sin(_bgController.value * math.pi * 2 + 0.0) * 0.5 + 0.5;
+        final pulse1 =
+            math.sin(_bgController.value * math.pi * 2 + 1.05) * 0.5 + 0.5;
+        final pulse2 =
+            math.sin(_bgController.value * math.pi * 2 + 2.1) * 0.5 + 0.5;
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 7, height: 6, margin: const EdgeInsets.symmetric(horizontal: 3),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.55 + 0.45 * pulse0),
-                borderRadius: BorderRadius.circular(3),
-              ),
-            ),
-            Container(
-              width: 22 + pulse1 * 6, height: 6, margin: const EdgeInsets.symmetric(horizontal: 3),
-              decoration: BoxDecoration(
-                color: AppColors.gradientLight.withOpacity(0.55 + 0.45 * pulse1),
-                borderRadius: BorderRadius.circular(3),
-              ),
-            ),
-            Container(
-              width: 7, height: 6, margin: const EdgeInsets.symmetric(horizontal: 3),
-              decoration: BoxDecoration(
-                color: AppColors.gradientBlue.withOpacity(0.55 + 0.45 * pulse2),
-                borderRadius: BorderRadius.circular(3),
-              ),
-            ),
+            _dot(7, AppColors.primary, pulse0),
+            _dot(22 + pulse1 * 6, AppColors.gradientLight, pulse1),
+            _dot(7, AppColors.primary, pulse2),
           ],
         );
       },
     );
   }
+
+  Widget _dot(double width, Color color, double pulse) => Container(
+        width: width,
+        height: 6,
+        margin: const EdgeInsets.symmetric(horizontal: 3),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.55 + 0.45 * pulse),
+          borderRadius: BorderRadius.circular(3),
+        ),
+      );
 
   Widget _buildButtons(BuildContext context) {
     return AnimatedBuilder(
@@ -425,16 +485,29 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       child: Column(
         children: [
           _PressScaleButton(
-            onTap: () => context.go('/onboarding'),
+            onTap: () => context.go(RouteNames.onboarding),
             child: Container(
               width: double.infinity,
               height: 58,
               decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
+                // Fix: بنفسجي فقط بدون أزرق
+                gradient: const LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [Color(0xFF8B6FD4), Color(0xFF5B3A9E)],
+                ),
                 borderRadius: BorderRadius.circular(18),
                 boxShadow: [
-                  BoxShadow(color: AppColors.primary.withOpacity(0.45), blurRadius: 24, offset: const Offset(0, 10)),
-                  BoxShadow(color: AppColors.primary.withOpacity(0.15), blurRadius: 6, offset: const Offset(0, 2)),
+                  BoxShadow(
+                    color: const Color(0xFF6C4AB6).withOpacity(0.45),
+                    blurRadius: 24,
+                    offset: const Offset(0, 10),
+                  ),
+                  BoxShadow(
+                    color: const Color(0xFF6C4AB6).withOpacity(0.15),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
                 ],
               ),
               child: Row(
@@ -442,7 +515,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 children: [
                   Text(
                     AppStrings.getStarted,
-                    style: AppTextStyles.buttonText,
+                    style: AppTextStyles.buttonTextPrimary,
                   ),
                   const SizedBox(width: 12),
                   Container(
@@ -452,7 +525,11 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                       color: AppColors.white.withOpacity(0.18),
                       borderRadius: BorderRadius.circular(9),
                     ),
-                    child: const Icon(Icons.arrow_forward_rounded, color: AppColors.white, size: 16),
+                    child: const Icon(
+                      Icons.arrow_forward_rounded,
+                      color: AppColors.white,
+                      size: 16,
+                    ),
                   ),
                 ],
               ),
@@ -469,7 +546,8 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                   children: [
                     TextSpan(
                       text: AppStrings.alreadyHaveAccount,
-                      style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textMuted),
+                      style: AppTextStyles.bodyMedium
+                          .copyWith(color: AppColors.textMuted),
                     ),
                     TextSpan(
                       text: AppStrings.signIn,
@@ -477,6 +555,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                         color: AppColors.primary,
                         fontWeight: FontWeight.w600,
                         decoration: TextDecoration.underline,
+                        decorationColor: AppColors.primary,
                       ),
                     ),
                   ],
@@ -499,15 +578,18 @@ class _PressScaleButton extends StatefulWidget {
   State<_PressScaleButton> createState() => _PressScaleButtonState();
 }
 
-class _PressScaleButtonState extends State<_PressScaleButton> with SingleTickerProviderStateMixin {
+class _PressScaleButtonState extends State<_PressScaleButton>
+    with SingleTickerProviderStateMixin {
   late AnimationController _ctrl;
   late Animation<double> _scale;
 
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 110));
-    _scale = Tween<double>(begin: 1.0, end: 0.96).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 110));
+    _scale = Tween<double>(begin: 1.0, end: 0.96)
+        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
   }
 
   @override
@@ -527,7 +609,8 @@ class _PressScaleButtonState extends State<_PressScaleButton> with SingleTickerP
       onTapCancel: () => _ctrl.reverse(),
       child: AnimatedBuilder(
         animation: _scale,
-        builder: (_, child) => Transform.scale(scale: _scale.value, child: child),
+        builder: (_, child) =>
+            Transform.scale(scale: _scale.value, child: child),
         child: widget.child,
       ),
     );

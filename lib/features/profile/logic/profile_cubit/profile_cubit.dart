@@ -12,7 +12,6 @@ class ProfileCubit extends Cubit<ProfileState> {
 
   ProfileCubit(this.profileRepository) : super(ProfileInitial());
 
-  // ── getter بيجيب الـ profile من أي state ──
   ProfileModel? get currentProfile {
     final s = state;
     if (s is ProfileLoaded) return s.profile;
@@ -22,7 +21,6 @@ class ProfileCubit extends Cubit<ProfileState> {
     return null;
   }
 
-  // ── GET ──
   Future<void> getProfile() async {
     if (currentProfile != null) return;
     emit(ProfileLoading());
@@ -42,7 +40,6 @@ class ProfileCubit extends Cubit<ProfileState> {
     );
   }
 
-  // ── UPDATE ──
   Future<void> updateProfile({
     required String firstName,
     required String secondName,
@@ -68,7 +65,6 @@ class ProfileCubit extends Cubit<ProfileState> {
     );
   }
 
-  // ── CHANGE PASSWORD ──
   Future<void> changePassword({
     required String currentPassword,
     required String newPassword,
@@ -84,7 +80,6 @@ class ProfileCubit extends Cubit<ProfileState> {
     );
   }
 
-  // ── CHANGE EMAIL (Step 1: بتبعت الإيميل الجديد تاخد كود) ──
   Future<void> changeEmail({required String newEmail}) async {
     emit(ChangeEmailLoading());
     final result = await profileRepository
@@ -95,7 +90,7 @@ class ProfileCubit extends Cubit<ProfileState> {
     );
   }
 
-  // ── CONFIRM CHANGE EMAIL (Step 2: بتدخل الكود وبيتغير الإيميل فعلاً) ──
+  // ── CONFIRM CHANGE EMAIL ──
   Future<void> confirmChangeEmail({
     required String id,
     required String newEmail,
@@ -105,27 +100,32 @@ class ProfileCubit extends Cubit<ProfileState> {
     final result = await profileRepository.confirmChangeEmail(
       ConfirmChangeEmailRequest(id: id, newEmail: newEmail, code: code),
     );
-    await result.fold(
-      (failure) async => emit(ConfirmChangeEmailFailure(errMessage: failure)),
-      (_) async {
-        // ✅ Fix: بعد تغيير الإيميل نعمل refresh للـ profile عشان الـ UI يتحدث
-        final refreshResult = await profileRepository.getProfile();
-        refreshResult.fold(
-          (failure) => emit(ConfirmChangeEmailSuccess()), // نجاح حتى لو الـ refresh فشل
-          (updatedProfile) {
-            // نبعت الـ state دي الأول عشان الـ listener يعمل حاجته
-            emit(ConfirmChangeEmailSuccess());
-            // بعدين نحدث الـ profile في الـ state
-            Future.delayed(const Duration(milliseconds: 100), () {
-              if (!isClosed) emit(ProfileLoaded(profile: updatedProfile));
-            });
-          },
-        );
+
+    result.fold(
+      (failure) => emit(ConfirmChangeEmailFailure(errMessage: failure)),
+      (_) {
+        // ✅ Fix: بدل ما نعمل GET /me (ممكن يرجع الإيميل القديم بسبب caching)
+        // نحدث الـ profile locally بالإيميل الجديد مباشرة
+        final current = currentProfile;
+        if (current != null) {
+          final updatedProfile = ProfileModel(
+            id: current.id,
+            firstName: current.firstName,
+            secondName: current.secondName,
+            email: newEmail, // ✅ الإيميل الجديد مباشرة
+            jobTitle: current.jobTitle,
+            dateOfBirth: current.dateOfBirth,
+            profileImage: current.profileImage,
+          );
+          // ProfileLoaded الأول عشان currentProfile يتحدث في الـ getter
+          emit(ProfileLoaded(profile: updatedProfile));
+        }
+        // ✅ بعدين ConfirmChangeEmailSuccess عشان الـ listener في الـ screen يشتغل
+        if (!isClosed) emit(ConfirmChangeEmailSuccess());
       },
     );
   }
 
-  // ── AVATAR ──
   Future<void> uploadAvatar(String filePath) async {
     if (currentProfile == null) {
       final result = await profileRepository.getProfile();

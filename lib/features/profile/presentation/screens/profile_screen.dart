@@ -22,6 +22,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
+    // ✅ Fix: بنستخدم getProfile() مش refreshProfile()
+    // getProfile() بتشيك لو currentProfile موجود وبترجع من غير ما تعمل API call
+    // كده الـ local update اللي عملناه في confirmChangeEmail مش هيتـ overwrite
     context.read<ProfileCubit>().getProfile();
   }
 
@@ -77,7 +80,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // ── Account Section ──
                         const SectionLabel(label: 'Account'),
                         MenuCard(items: [
                           MenuItem(
@@ -88,6 +90,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             sub: 'Update your personal info',
                             onTap: () async {
                               await context.push(RouteNames.editProfile);
+                              // ✅ بعد Edit Profile نعمل refreshProfile
+                              // عشان الاسم والبيانات الجديدة تظهر
                               if (mounted) {
                                 context
                                     .read<ProfileCubit>()
@@ -104,7 +108,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             onTap: () =>
                                 context.push(RouteNames.changePassword),
                           ),
-                          // ✅ Change Email — جديد هنا
                           MenuItem(
                             icon: Icons.email_outlined,
                             iconBg: const Color(0xFFE8F5E9),
@@ -113,16 +116,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             sub: 'Update your email address',
                             onTap: () async {
                               await context.push(RouteNames.changeEmail);
-                              if (mounted) {
-                                context
-                                    .read<ProfileCubit>()
-                                    .refreshProfile();
-                              }
+                              // ✅ بعد Change Email مش بنعمل refreshProfile
+                              // لأن الـ cubit اتحدث locally في confirmChangeEmail
+                              // refreshProfile هيرجع الإيميل القديم من السيرفر
                             },
                           ),
                         ]),
 
-                        // ── Preferences Section ──
                         const SectionLabel(label: 'Preferences'),
                         MenuCard(items: [
                           MenuItem(
@@ -235,7 +235,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-              // ✅ revokeToken قبل الـ clearAll
               final token =
                   await SecureStorageService().getAccessToken();
               final refresh =
